@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Form</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <style>
+        /* Basic Reset */
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+            /* Use Telegram's native background and text colors automatically */
+            background-color: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        /* Form Styling */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--tg-theme-hint-color, #999);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+            /* Adapt inputs to theme */
+            background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            color: var(--tg-theme-text-color, #000);
+        }
+
+        /* The Submit Button */
+        button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            /* Use Telegram's native blue button color */
+            background-color: var(--tg-theme-button-color, #3390ec);
+            color: var(--tg-theme-button-text-color, #ffffff);
+        }
+
+        /* Error/Status message */
+        #status {
+            text-align: center;
+            margin-top: 10px;
+            color: red;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Contact Form</h2>
+    
+    <div id="user-greeting" style="text-align: center; margin-bottom: 20px; font-style: italic;">
+        </div>
+
+    <form id="dataForm">
+        <div class="form-group">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" placeholder="Enter your name">
+        </div>
+
+        <div class="form-group">
+            <label for="category">Interest</label>
+            <select id="category">
+                <option value="tech">Technology</option>
+                <option value="art">Art & Design</option>
+                <option value="business">Business</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="comments">Comments</label>
+            <textarea id="comments" rows="3" placeholder="Any details..."></textarea>
+        </div>
+    </form>
+
+    <button onclick="sendData()">Submit to Bot</button>
+    <p id="status"></p>
+
+    <script>
+        // 2. Initialize the Telegram WebApp object
+        const tg = window.Telegram.WebApp;
+
+        // Expand the app to full height
+        tg.expand();
+
+        // 3. Optional: Read user data to personalize the form
+        // (This only works inside Telegram)
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            const user = tg.initDataUnsafe.user;
+            document.getElementById('user-greeting').innerText = `Hello, ${user.first_name}!`;
+            
+            // Auto-fill name if available
+            if(user.last_name) {
+                document.getElementById('name').value = `${user.first_name} ${user.last_name}`;
+            } else {
+                document.getElementById('name').value = user.first_name;
+            }
+        } else {
+            // Fallback for browser testing
+            document.getElementById('user-greeting').innerText = "Running in external browser (Dev Mode)";
+        }
+
+        // 4. The Main Function to send data
+        function sendData() {
+            // Hide errors
+            document.getElementById('status').style.display = 'none';
+
+            const name = document.getElementById('name').value;
+            const category = document.getElementById('category').value;
+            const comments = document.getElementById('comments').value;
+
+            if (!name) {
+                document.getElementById('status').innerText = "Please enter your name.";
+                document.getElementById('status').style.display = 'block';
+                return;
+            }
+
+            // Create the data object
+            const data = {
+                name: name,
+                category: category,
+                comments: comments,
+                timestamp: new Date().toISOString()
+            };
+
+            // 5. Send data to Telegram
+            // This function converts the object to a string and sends it
+            // It triggers the 'web_app_data' event in your bot
+            tg.sendData(JSON.stringify(data));
+        }
+    </script>
+</body>
+</html>
